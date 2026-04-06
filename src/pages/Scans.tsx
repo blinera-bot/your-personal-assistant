@@ -60,7 +60,7 @@ export default function Scans() {
         </div>
         <div className="mt-3 flex items-center gap-1.5 text-xs text-warning">
           <AlertTriangle className="h-3 w-3" />
-          Only authorized test environments permitted
+          Ensure you have authorization before scanning any target
         </div>
       </Card>
 
