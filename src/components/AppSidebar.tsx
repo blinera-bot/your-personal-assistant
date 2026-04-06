@@ -45,7 +45,7 @@ export function AppSidebar() {
               <Shield className="h-5 w-5 text-primary" />
               {!collapsed && (
                 <span className="font-mono text-sm font-bold tracking-wider text-primary">
-                  SENTINEL AI
+                  CYBERION
                 </span>
               )}
             </div>
