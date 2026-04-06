@@ -4,39 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, FileJson, Globe, File } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { vulnerabilities } from "@/lib/mock-data";
+import { useScanContext } from "@/context/ScanContext";
 
-const reports = [
-  {
-    id: "RPT-001",
-    title: "Full Security Assessment - SCAN-001",
-    type: "Technical",
-    scanId: "SCAN-001",
-    date: "2026-02-27",
-    findings: 6,
-    pages: 24,
-  },
-  {
-    id: "RPT-002",
-    title: "Executive Summary - SCAN-001",
-    type: "Executive",
-    scanId: "SCAN-001",
-    date: "2026-02-27",
-    findings: 6,
-    pages: 8,
-  },
-  {
-    id: "RPT-003",
-    title: "Full Security Assessment - SCAN-003",
-    type: "Technical",
-    scanId: "SCAN-003",
-    date: "2026-02-25",
-    findings: 10,
-    pages: 31,
-  },
-];
-
-function generateJsonReport(report: typeof reports[0]) {
+function generateJsonReport(vulnerabilities: any[], report: any) {
   return JSON.stringify({
     reportId: report.id,
     title: report.title,
@@ -45,23 +15,15 @@ function generateJsonReport(report: typeof reports[0]) {
     generatedAt: report.date,
     totalFindings: report.findings,
     vulnerabilities: vulnerabilities.map(v => ({
-      id: v.id,
-      title: v.title,
-      severity: v.severity,
-      riskScore: v.riskScore,
-      category: v.category,
-      owaspCategory: v.owaspCategory,
-      status: v.status,
-      description: v.description,
-      evidence: v.evidence,
-      recommendation: v.recommendation,
-      affectedUrl: v.affectedUrl,
-      detectedAt: v.detectedAt,
+      id: v.id, title: v.title, severity: v.severity, riskScore: v.riskScore,
+      category: v.category, owaspCategory: v.owaspCategory, status: v.status,
+      description: v.description, evidence: v.evidence, recommendation: v.recommendation,
+      affectedUrl: v.affectedUrl, detectedAt: v.detectedAt,
     })),
   }, null, 2);
 }
 
-function generateHtmlReport(report: typeof reports[0]) {
+function generateHtmlReport(vulnerabilities: any[], report: any) {
   const vulnRows = vulnerabilities.map(v => `
     <tr>
       <td style="padding:8px;border:1px solid #333">${v.id}</td>
@@ -105,7 +67,7 @@ table{width:100%;border-collapse:collapse;margin:16px 0}th{background:#1a1a2e;pa
 </body></html>`;
 }
 
-function generateTextReport(report: typeof reports[0]) {
+function generateTextReport(vulnerabilities: any[], report: any) {
   const lines = [
     "═".repeat(60),
     "CYBERION — Security Assessment Report",
@@ -155,20 +117,41 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 }
 
 export default function Reports() {
+  const { scans, vulnerabilities } = useScanContext();
+
+  // Dynamically generate reports from scans
+  const reports = scans
+    .filter(s => s.status === "completed")
+    .map((scan, i) => ({
+      id: `RPT-${String(i + 1).padStart(3, "0")}`,
+      title: `Full Security Assessment - ${scan.id}`,
+      type: i % 2 === 0 ? "Technical" : "Executive",
+      scanId: scan.id,
+      targetUrl: scan.targetUrl,
+      date: scan.completedAt ? new Date(scan.completedAt).toISOString().split("T")[0] : new Date(scan.startedAt).toISOString().split("T")[0],
+      findings: Object.values(scan.vulnCount).reduce((a, b) => a + b, 0),
+      pages: Math.max(8, Object.values(scan.vulnCount).reduce((a, b) => a + b, 0) * 4),
+    }));
+
   const handleDownload = (report: typeof reports[0], format: string) => {
+    // Filter vulnerabilities relevant to this scan's target URL
+    const relevantVulns = vulnerabilities.filter(v => v.affectedUrl.includes(report.targetUrl) || report.targetUrl.includes("juice-shop"));
+
+    const vulnsToUse = relevantVulns.length > 0 ? relevantVulns : vulnerabilities;
+
     switch (format) {
       case "json": {
-        const json = generateJsonReport(report);
+        const json = generateJsonReport(vulnsToUse, report);
         downloadFile(json, `${report.id}_report.json`, "application/json");
         break;
       }
       case "html": {
-        const html = generateHtmlReport(report);
+        const html = generateHtmlReport(vulnsToUse, report);
         downloadFile(html, `${report.id}_report.html`, "text/html");
         break;
       }
       case "pdf": {
-        const text = generateTextReport(report);
+        const text = generateTextReport(vulnsToUse, report);
         downloadFile(text, `${report.id}_report.txt`, "text/plain");
         break;
       }
@@ -199,6 +182,7 @@ export default function Reports() {
                   </div>
                   <div>
                     <p className="font-medium text-sm">{report.title}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{report.targetUrl}</p>
                     <div className="flex gap-2 mt-1.5">
                       <Badge variant="outline" className="text-xs">{report.type}</Badge>
                       <span className="text-xs text-muted-foreground font-mono">{report.findings} findings • {report.pages} pages</span>
@@ -221,6 +205,9 @@ export default function Reports() {
             </Card>
           </motion.div>
         ))}
+        {reports.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">No completed scans yet. Start a scan to generate reports.</p>
+        )}
       </div>
     </div>
   );

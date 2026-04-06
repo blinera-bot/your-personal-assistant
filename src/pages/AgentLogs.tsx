@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { agentLogs, type AgentType } from "@/lib/mock-data";
+import { useScanContext } from "@/context/ScanContext";
+import { type AgentType } from "@/lib/mock-data";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { motion } from "framer-motion";
 import { Terminal } from "lucide-react";
 
 export default function AgentLogs() {
+  const { agentLogs } = useScanContext();
   const [filter, setFilter] = useState<AgentType | "all">("all");
 
   const filtered = filter === "all" ? agentLogs : agentLogs.filter(l => l.agent === filter);
