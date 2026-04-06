@@ -17,14 +17,20 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function Scans() {
-  const [targetUrl, setTargetUrl] = useState("https://juice-shop.local");
+  const [targetUrl, setTargetUrl] = useState("");
 
   const handleStartScan = () => {
-    if (!targetUrl.includes("juice-shop")) {
-      toast.error("Only authorized targets (OWASP Juice Shop) are allowed.");
+    if (!targetUrl.trim()) {
+      toast.error("Please enter a target URL.");
       return;
     }
-    toast.success("Scan initiated! Detection Agent is starting...");
+    try {
+      new URL(targetUrl);
+    } catch {
+      toast.error("Please enter a valid URL (e.g. https://example.com).");
+      return;
+    }
+    toast.success(`Scan initiated on ${targetUrl}! Detection Agent is starting...`);
   };
 
   return (
