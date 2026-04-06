@@ -1,9 +1,9 @@
 import { StatCard } from "@/components/StatCard";
 import { Bug, Shield, AlertTriangle, CheckCircle, Radar, TrendingUp } from "lucide-react";
-import { vulnerabilities, scans, riskTrendData, severityDistribution, owaspDistribution, agentLogs } from "@/lib/mock-data";
+import { useScanContext } from "@/context/ScanContext";
+import { riskTrendData, severityDistribution, owaspDistribution, getSeverityBg } from "@/lib/mock-data";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getSeverityBg, getSeverityColor } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import {
   ChartContainer,
@@ -18,6 +18,8 @@ const chartConfig = {
 };
 
 const Index = () => {
+  const { vulnerabilities, scans, agentLogs } = useScanContext();
+
   const totalVulns = vulnerabilities.length;
   const criticalCount = vulnerabilities.filter(v => v.severity === "Critical").length;
   const openCount = vulnerabilities.filter(v => v.status === "open").length;
@@ -32,21 +34,18 @@ const Index = () => {
           Security Dashboard
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Multi-agent vulnerability analysis • OWASP Juice Shop
+          Multi-agent vulnerability analysis • Cyberion
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Findings" value={totalVulns} subtitle={`${openCount} open`} icon={Bug} />
         <StatCard title="Critical" value={criticalCount} subtitle="Immediate action required" icon={AlertTriangle} variant="danger" />
-        <StatCard title="Risk Score" value={latestScan.riskScore.toFixed(1)} subtitle="Latest scan" icon={TrendingUp} variant="warning" />
-        <StatCard title="Remediated" value={remediatedCount} subtitle={`${((remediatedCount / totalVulns) * 100).toFixed(0)}% resolved`} icon={CheckCircle} variant="success" />
+        <StatCard title="Risk Score" value={latestScan?.riskScore.toFixed(1) ?? "N/A"} subtitle="Latest scan" icon={TrendingUp} variant="warning" />
+        <StatCard title="Remediated" value={remediatedCount} subtitle={totalVulns > 0 ? `${((remediatedCount / totalVulns) * 100).toFixed(0)}% resolved` : "0%"} icon={CheckCircle} variant="success" />
       </div>
 
-      {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Risk Trend */}
         <Card className="col-span-2 p-5 bg-card border-border">
           <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-4">Risk Score Trend</h3>
           <ChartContainer config={chartConfig} className="h-[200px] w-full">
@@ -60,34 +59,17 @@ const Index = () => {
               <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={11} />
               <YAxis domain={[0, 10]} tickLine={false} axisLine={false} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                type="monotone"
-                dataKey="score"
-                stroke="hsl(160, 100%, 45%)"
-                strokeWidth={2}
-                fill="url(#riskGradient)"
-              />
+              <Area type="monotone" dataKey="score" stroke="hsl(160, 100%, 45%)" strokeWidth={2} fill="url(#riskGradient)" />
             </AreaChart>
           </ChartContainer>
         </Card>
 
-        {/* Severity Distribution */}
         <Card className="p-5 bg-card border-border">
           <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-4">Severity Distribution</h3>
           <ChartContainer config={chartConfig} className="h-[200px] w-full">
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Pie
-                data={severityDistribution}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={75}
-                dataKey="value"
-                nameKey="name"
-                strokeWidth={2}
-                stroke="hsl(220, 20%, 4%)"
-              >
+              <Pie data={severityDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" nameKey="name" strokeWidth={2} stroke="hsl(220, 20%, 4%)">
                 {severityDistribution.map((entry, i) => (
                   <Cell key={i} fill={entry.fill} />
                 ))}
@@ -97,9 +79,7 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* OWASP + Recent Findings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* OWASP Categories */}
         <Card className="p-5 bg-card border-border">
           <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-4">OWASP Top 10 Mapping</h3>
           <ChartContainer config={chartConfig} className="h-[200px] w-full">
@@ -112,7 +92,6 @@ const Index = () => {
           </ChartContainer>
         </Card>
 
-        {/* Recent Findings */}
         <Card className="p-5 bg-card border-border">
           <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-4">Latest Findings</h3>
           <div className="space-y-3">
@@ -137,7 +116,6 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* Agent Activity Feed */}
       <Card className="p-5 bg-card border-border">
         <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-4">Agent Activity Feed</h3>
         <div className="space-y-1 font-mono text-xs">

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { scans, type Scan } from "@/lib/mock-data";
+import { useScanContext } from "@/context/ScanContext";
+import { type Scan } from "@/lib/mock-data";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const statusStyles: Record<string, string> = {
 
 export default function Scans() {
   const [targetUrl, setTargetUrl] = useState("");
+  const { scans, startScan } = useScanContext();
 
   const handleStartScan = () => {
     if (!targetUrl.trim()) {
@@ -30,7 +32,9 @@ export default function Scans() {
       toast.error("Please enter a valid URL (e.g. https://example.com).");
       return;
     }
+    startScan(targetUrl);
     toast.success(`Scan initiated on ${targetUrl}! Detection Agent is starting...`);
+    setTargetUrl("");
   };
 
   return (
@@ -40,7 +44,6 @@ export default function Scans() {
         <p className="text-sm text-muted-foreground mt-1">Initiate and monitor security scans</p>
       </div>
 
-      {/* New Scan */}
       <Card className="p-5 bg-card border-border glow-primary">
         <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
           <Radar className="h-4 w-4 text-primary" />
@@ -64,7 +67,6 @@ export default function Scans() {
         </div>
       </Card>
 
-      {/* Scan History */}
       <div className="space-y-4">
         <h3 className="text-sm font-mono uppercase tracking-wider text-muted-foreground">Scan History</h3>
         {scans.map((scan, i) => (
@@ -76,8 +78,6 @@ export default function Scans() {
 }
 
 function ScanCard({ scan, index }: { scan: Scan; index: number }) {
-  const totalVulns = Object.values(scan.vulnCount).reduce((a, b) => a + b, 0);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -101,7 +101,6 @@ function ScanCard({ scan, index }: { scan: Scan; index: number }) {
           </div>
         </div>
 
-        {/* Agent Progress */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           {(["detection", "remediation", "reporting"] as const).map((agent) => (
             <div key={agent}>
@@ -114,7 +113,6 @@ function ScanCard({ scan, index }: { scan: Scan; index: number }) {
           ))}
         </div>
 
-        {/* Vuln summary */}
         <div className="flex gap-2 flex-wrap">
           {scan.vulnCount.critical > 0 && <Badge variant="outline" className="bg-destructive/15 text-destructive border-destructive/30 text-xs">{scan.vulnCount.critical} Critical</Badge>}
           {scan.vulnCount.high > 0 && <Badge variant="outline" className="bg-warning/15 text-warning border-warning/30 text-xs">{scan.vulnCount.high} High</Badge>}

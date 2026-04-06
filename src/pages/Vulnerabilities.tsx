@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { vulnerabilities, getSeverityBg, type Vulnerability, type Severity } from "@/lib/mock-data";
+import { useScanContext } from "@/context/ScanContext";
+import { getSeverityBg, type Vulnerability, type Severity } from "@/lib/mock-data";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { motion } from "framer-motion";
 import { ExternalLink, Shield, Code, Lightbulb } from "lucide-react";
 
 export default function Vulnerabilities() {
+  const { vulnerabilities } = useScanContext();
   const [selected, setSelected] = useState<Vulnerability | null>(null);
   const [filterSeverity, setFilterSeverity] = useState<Severity | "All">("All");
 
@@ -27,7 +29,6 @@ export default function Vulnerabilities() {
         <p className="text-sm text-muted-foreground mt-1">{vulnerabilities.length} findings across all scans</p>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         {(["All", "Critical", "High", "Medium", "Low"] as const).map(sev => (
           <Button
@@ -42,7 +43,6 @@ export default function Vulnerabilities() {
         ))}
       </div>
 
-      {/* Vulnerability list */}
       <div className="space-y-3">
         {filtered.map((vuln, i) => (
           <motion.div
@@ -79,7 +79,6 @@ export default function Vulnerabilities() {
         ))}
       </div>
 
-      {/* Detail Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
         <DialogContent className="max-w-2xl bg-card border-border max-h-[80vh] overflow-y-auto">
           {selected && (
@@ -96,12 +95,10 @@ export default function Vulnerabilities() {
                   <Badge variant="outline">{selected.owaspCategory}</Badge>
                   <Badge variant="outline">CVSS: {selected.riskScore}</Badge>
                 </div>
-
                 <div>
                   <h4 className="text-xs font-mono uppercase text-muted-foreground mb-2">Description</h4>
                   <p className="text-sm leading-relaxed">{selected.description}</p>
                 </div>
-
                 <div>
                   <h4 className="text-xs font-mono uppercase text-muted-foreground mb-2 flex items-center gap-1">
                     <Code className="h-3 w-3" /> Proof of Concept
@@ -110,14 +107,12 @@ export default function Vulnerabilities() {
                     {selected.evidence}
                   </div>
                 </div>
-
                 <div>
                   <h4 className="text-xs font-mono uppercase text-muted-foreground mb-2 flex items-center gap-1">
                     <Lightbulb className="h-3 w-3" /> Remediation
                   </h4>
                   <p className="text-sm leading-relaxed">{selected.recommendation}</p>
                 </div>
-
                 <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
                   <ExternalLink className="h-3 w-3" />
                   {selected.affectedUrl}
