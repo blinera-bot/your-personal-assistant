@@ -50,7 +50,7 @@ export default function Scans() {
           <Input
             value={targetUrl}
             onChange={(e) => setTargetUrl(e.target.value)}
-            placeholder="https://juice-shop.local"
+            placeholder="https://target-app.example.com"
             className="font-mono text-sm bg-secondary border-border"
           />
           <Button onClick={handleStartScan} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
