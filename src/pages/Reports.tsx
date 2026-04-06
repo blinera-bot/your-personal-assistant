@@ -105,7 +105,7 @@ table{width:100%;border-collapse:collapse;margin:16px 0}th{background:#1a1a2e;pa
 function generateTextReport(report: typeof reports[0]) {
   const lines = [
     "═".repeat(60),
-    "SENTINEL AI — Security Assessment Report",
+    "CYBERION — Security Assessment Report",
     "═".repeat(60),
     "",
     `Report ID:  ${report.id}`,
