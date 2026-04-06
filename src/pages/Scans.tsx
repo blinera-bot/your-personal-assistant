@@ -17,14 +17,20 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function Scans() {
-  const [targetUrl, setTargetUrl] = useState("https://juice-shop.local");
+  const [targetUrl, setTargetUrl] = useState("");
 
   const handleStartScan = () => {
-    if (!targetUrl.includes("juice-shop")) {
-      toast.error("Only authorized targets (OWASP Juice Shop) are allowed.");
+    if (!targetUrl.trim()) {
+      toast.error("Please enter a target URL.");
       return;
     }
-    toast.success("Scan initiated! Detection Agent is starting...");
+    try {
+      new URL(targetUrl);
+    } catch {
+      toast.error("Please enter a valid URL (e.g. https://example.com).");
+      return;
+    }
+    toast.success(`Scan initiated on ${targetUrl}! Detection Agent is starting...`);
   };
 
   return (
@@ -44,7 +50,7 @@ export default function Scans() {
           <Input
             value={targetUrl}
             onChange={(e) => setTargetUrl(e.target.value)}
-            placeholder="https://juice-shop.local"
+            placeholder="https://target-app.example.com"
             className="font-mono text-sm bg-secondary border-border"
           />
           <Button onClick={handleStartScan} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
@@ -54,7 +60,7 @@ export default function Scans() {
         </div>
         <div className="mt-3 flex items-center gap-1.5 text-xs text-warning">
           <AlertTriangle className="h-3 w-3" />
-          Only authorized test environments permitted
+          Ensure you have authorization before scanning any target
         </div>
       </Card>
 
