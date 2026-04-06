@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
               <span className="font-mono text-xs text-muted-foreground tracking-wide">
-                SENTINEL AI // CYBERSECURITY PLATFORM
+                CYBERION // CYBERSECURITY PLATFORM
               </span>
             </div>
             <div className="ml-auto flex items-center gap-2">
